@@ -13,7 +13,7 @@ class User(DB.Model):
     id = DB.Column(DB.BigInteger, primary_key=True, nullable=False)
     # username column schema
     username = DB.Column(DB.String, nullable=False)
-
+    newest_tweet_id = DB.Column(DB.BigInteger)
 
 class Tweet(DB.Model):
     # ID column schema
@@ -26,3 +26,5 @@ class Tweet(DB.Model):
     # will automatically create the one-to-many relationship, but also add a new attribute
     # onto the "User" called "Tweets" which will be a list of all of the user tweets
     user = DB.relationship("User", backref=DB.backref('tweets'), lazy=True)
+    # word embedding vector storage
+    vect = DB.Column(DB.PickleType, nullable=False)

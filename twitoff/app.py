@@ -1,12 +1,14 @@
 from flask import Flask, render_template
 from .models import DB, User, Tweet
+from os import getenv
+from .twitter import add_or_update_user
 
 def create_app():
 
     app = Flask(__name__)
     
     # configuration variable to our app
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+    app.config['SQLALCHEMY_DATABASE_URI'] = getenv('DATABASE_URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # connect our database to the app object
@@ -22,41 +24,23 @@ def create_app():
     # test my database funtionality
     #by inserting some fake data into the DB
     def populate():
-
-        #remove everything from the DB
-        DB.drop_all()
-        # recreate the User and Tweet tables
-        # so that they're ready to be used (inserted into)
-        DB.create_all()
         
-
-        # make two new users
-        ryan = User(id=1, username='ryanallred')
-        bradley = User(id=2, username='bradbaker')
-
-        # make two tweets
-        tweet1 = Tweet(id=1, text="this is ryan's tweet", user=ryan)
-        tweet2 = Tweet(id=3, text="hey my name is ryan", user=ryan)
-        tweet3 = Tweet(id=4, text="I teach data science", user=ryan)
-        tweet4 = Tweet(id=2, text="this is bradley's tweet", user=bradley)
-        tweet5 = Tweet(id=5, text="My name is Bradley", user=bradley)
-        tweet6 = Tweet(id=6, text="I am a student", user=bradley)
-
-        # inserting into the DB when working with SQLite directly
-        DB.session.add(ryan)
-        DB.session.add(bradley)
-        DB.session.add(tweet1)
-        DB.session.add(tweet2)
-        DB.session.add(tweet3)
-        DB.session.add(tweet4)
-        DB.session.add(tweet5)
-        DB.session.add(tweet6)
-
-        # commit the DB changes
-        DB.session.commit()
+        add_or_update_user('nasa')
+        add_or_update_user('euphoriaHBO')
+        add_or_update_user('RyanAllred')
 
         return render_template('base.html', title='Populate')
-        # make two tweets and attach the tweets to those users
+
+    @app.route('/update')
+    # test my database funtionality
+    #by inserting some fake data into the DB
+    def update():
+        
+        usernames = get_usernames()
+        for username in usernames:
+            add_or_update_user(username)
+
+        return render_template('base.html', title='Update User Tweets')
 
     @app.route('/reset')
     def reset():
@@ -71,3 +55,13 @@ def create_app():
         return render_template('base.html', title='Reset Database')
 
     return app
+
+
+def get_usernames():
+    # get all of the usernames of existing users
+    Users = User.query.all()
+    usernames = []
+    for user in Users:
+        usernames.append(user.username)
+        
+    return usernames
